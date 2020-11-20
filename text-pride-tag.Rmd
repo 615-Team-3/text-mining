@@ -1,0 +1,68 @@
+---
+title: "text-mining-pride"
+author: "Yuelin Jiang"
+date: "11/20/2020"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tnum)
+library(tidyverse)
+library(magrittr)
+
+tnum.authorize()
+```
+
+## Tagging "rich" and "married
+
+
+
+```{r, echo=FALSE }
+rich <- tnum.query("*pride* has text = REGEXP(\"rich\")", max =100)
+richdf <- tnum.objectsToDf(rich)
+
+married <- tnum.query("*pride* has text = REGEXP(\"married\") ", max = 100 )
+marriedDf <- tnum.objectsToDf(married)
+```
+
+## Plotting relation map of "rich" and "married"
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+# Plot a relation graph of where "rich" words are in this book
+picRich <- tnum.makePhraseGraphFromPathList(richdf$subject)
+tnum.plotGraph(picRich)
+
+picMarried <- tnum.makePhraseGraphFromPathList(marriedDf$subject)
+tnum.plotGraph(picMarried)
+
+# tag sentences with "rich"
+tnum.tagByQuery("*pride* has text = REGEXP(\"rich\")", "reference:rich")
+```
+
+
+## Plotting bar plots of where "rich" and "marriage" occurs in each chapter
+```{r}
+# plotting for rich
+rich_2 <- tnum.query("@reference:rich", max=100)
+richdf_2 <- tnum.objectsToDf(rich_2)
+richdf_2$subject <- str_split(richdf_2$subject, " ", simplify = T)
+richdf_2 %<>% separate(subject,, into=c("turenum1", "turenum2","turenum","turenum4","turenum5","chapter", "Chapter"))
+richdf_2$Chapter <- as.numeric(richdf_2$Chapter)
+ggplot(data=richdf_2)+
+  geom_bar(aes(x=richdf_2$Chapter))+
+  labs(x="Chapter", title="Distribution of Word: RICH")
+
+#plotting for married
+marriedDf$subject <- str_split(marriedDf$subject, " ", simplify = T)
+marriedDf %<>% separate(subject,, into=c("turenum1", "turenum2","turenum","turenum4","turenum5","chapter", "Chapter"))
+marriedDf$Chapter <- as.numeric(marriedDf$Chapter)
+ggplot(data=marriedDf)+
+  geom_bar(aes(x=marriedDf$Chapter))+
+  labs(x="Chapter", title="Distribution of Word: MARRIED")
+```
+
